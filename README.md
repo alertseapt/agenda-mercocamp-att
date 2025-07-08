@@ -94,6 +94,25 @@ Para deploy automático na Railway:
 
 📋 **Guia completo**: Ver `RAILWAY.md` para instruções detalhadas.
 
+## 📖 Documentação da API
+
+### 📚 **Documentação Completa**
+- **`DOCUMENTACAO_API.txt`** - Documentação detalhada em formato TXT (569 linhas)
+- **`README.md`** - Visão geral e instalação
+- **`RAILWAY.md`** - Guia de deploy
+
+### 📋 **Conteúdo da Documentação**
+1. Informações gerais da API
+2. Autenticação e segurança
+3. Estrutura de resposta
+4. Endpoints de sistema (health, debug)
+5. Endpoints de agendamento (CRUD completo)
+6. Endpoints de produtos (CRUD completo)
+7. Códigos de status HTTP
+8. Validações e regras de negócio
+9. Exemplos práticos de uso
+10. Troubleshooting e dicas
+
 ## 📖 Endpoints da API
 
 ### Base URL
