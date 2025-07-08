@@ -136,6 +136,78 @@ function sanitizeInput(input) {
     .replace(/"/g, '\\"');
 }
 
+// Função para validar XML básico
+function validateXMLFormat(xmlString) {
+  if (!xmlString || typeof xmlString !== 'string') return false;
+  
+  // Verifica se começa com < e termina com >
+  const trimmed = xmlString.trim();
+  if (!trimmed.startsWith('<') || !trimmed.endsWith('>')) {
+    return false;
+  }
+  
+  // Verifica se tem pelo menos uma tag de fechamento
+  const openTags = (trimmed.match(/</g) || []).length;
+  const closeTags = (trimmed.match(/>/g) || []).length;
+  
+  return openTags > 0 && closeTags > 0;
+}
+
+// Função para validar se XML é de NF-e
+function validateNFeXML(xmlString) {
+  if (!validateXMLFormat(xmlString)) return false;
+  
+  // Verifica se contém estruturas básicas de NF-e
+  const nfePatterns = [
+    /<NFe.*?>/i,
+    /<infNFe.*?>/i,
+    /<nfeProc.*?>/i,
+    /<ide.*?>/i,
+    /<emit.*?>/i
+  ];
+  
+  return nfePatterns.some(pattern => pattern.test(xmlString));
+}
+
+// Função para validar chave de acesso NF-e (44 dígitos)
+function validateChaveNFe(chave) {
+  if (!chave) return false;
+  
+  // Remove prefixo "NFe" se existir
+  const cleanChave = chave.replace(/^NFe/, '');
+  
+  // Verifica se tem exatamente 44 dígitos
+  return /^\d{44}$/.test(cleanChave);
+}
+
+// Função para validar código de produto em NF-e
+function validateProdutoNFe(cProd) {
+  if (!cProd || typeof cProd !== 'string') return false;
+  
+  // Máximo 60 caracteres conforme especificação NF-e
+  if (cProd.length > 60) return false;
+  
+  // Não pode estar vazio
+  return cProd.trim().length > 0;
+}
+
+// Função para validar CNPJ em contexto de NF-e
+function validateCNPJNFe(cnpj) {
+  if (!cnpj) return false;
+  
+  // Se for número, converte para string
+  const cnpjStr = cnpj.toString();
+  
+  // Limpa e valida
+  const cleanedCNPJ = cleanCNPJ(cnpjStr);
+  
+  // Verifica se tem 14 dígitos
+  if (cleanedCNPJ.length !== 14) return false;
+  
+  // Usa validação completa de CNPJ
+  return validateCNPJ(cleanedCNPJ);
+}
+
 module.exports = {
   cleanCNPJ,
   validateCNPJ,
@@ -146,5 +218,10 @@ module.exports = {
   validateCHNFE,
   validateAgendamentoID,
   validateProdutoCode,
-  sanitizeInput
+  sanitizeInput,
+  validateXMLFormat,
+  validateNFeXML,
+  validateChaveNFe,
+  validateProdutoNFe,
+  validateCNPJNFe
 }; 

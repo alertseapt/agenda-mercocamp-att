@@ -7,7 +7,12 @@ const {
   validateAgendamentoID, 
   validateProdutoCode,
   sanitizeInput,
-  cleanCNPJ
+  cleanCNPJ,
+  validateXMLFormat,
+  validateNFeXML,
+  validateChaveNFe,
+  validateProdutoNFe,
+  validateCNPJNFe
 } = require('../utils/validators');
 
 // Middleware para validar dados de agendamento
@@ -261,10 +266,74 @@ const validateQuery = (req, res, next) => {
   next();
 };
 
+// Middleware para validar XML de NF-e
+const validateNFeXMLMiddleware = (req, res, next) => {
+  const { xml } = req.body;
+  const errors = [];
+
+  // Validar se XML foi enviado
+  if (!xml) {
+    errors.push('XML é obrigatório');
+  } else {
+    // Validar formato XML básico
+    if (!validateXMLFormat(xml)) {
+      errors.push('XML deve estar em formato válido');
+    }
+    
+    // Validar se é XML de NF-e
+    if (!validateNFeXML(xml)) {
+      errors.push('XML deve ser de uma Nota Fiscal Eletrônica válida');
+    }
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Dados inválidos',
+      errors: errors
+    });
+  }
+
+  next();
+};
+
+// Middleware para validar campos específicos de produto NF-e
+const validateProdutoNFeMiddleware = (req, res, next) => {
+  const { cProd, icProd, ixProd } = req.body;
+  const errors = [];
+
+  // Validar cProd se fornecido
+  if (cProd && !validateProdutoNFe(cProd)) {
+    errors.push('cProd deve ser uma string válida com máximo 60 caracteres');
+  }
+
+  // Validar icProd se fornecido (campo personalizado)
+  if (icProd && typeof icProd !== 'string') {
+    errors.push('icProd deve ser uma string');
+  }
+
+  // Validar ixProd se fornecido (campo personalizado)
+  if (ixProd && typeof ixProd !== 'string') {
+    errors.push('ixProd deve ser uma string');
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Dados inválidos',
+      errors: errors
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   validateAgendamento,
   validateProduto,
   validateUserId,
   validateParams,
-  validateQuery
+  validateQuery,
+  validateNFeXMLMiddleware,
+  validateProdutoNFeMiddleware
 }; 

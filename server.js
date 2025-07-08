@@ -26,6 +26,7 @@ const logger = winston.createLogger({
 // Importar rotas
 const agendamentoRoutes = require('./routes/agendamento');
 const produtoRoutes = require('./routes/produto');
+const xmlRoutes = require('./routes/xml');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -80,6 +81,7 @@ app.get('/', (req, res) => {
     endpoints: {
       agendamento: '/table/agendamento',
       produtos: '/table/produtos',
+      xml: '/parse',
       health: '/health',
       debug: '/debug'
     },
@@ -97,6 +99,11 @@ app.get('/', (req, res) => {
         'POST /table/produtos': 'Criar novo produto',
         'PUT /table/produtos/:cod_int': 'Atualizar produto',
         'DELETE /table/produtos/:cod_int': 'Deletar produto'
+      },
+      xml: {
+        'POST /parse/xml-to-json': 'Converter XML de NF-e para JSON',
+        'POST /parse/extract-info': 'Extrair informações específicas da NF-e',
+        'POST /parse/validate-nfe': 'Validar se XML é uma NF-e válida'
       }
     }
   });
@@ -105,6 +112,7 @@ app.get('/', (req, res) => {
 // Rotas principais
 app.use('/table/agendamento', agendamentoRoutes);
 app.use('/table/produtos', produtoRoutes);
+app.use('/parse', xmlRoutes);
 
 // Endpoint de debug
 app.get('/debug', (req, res) => {
