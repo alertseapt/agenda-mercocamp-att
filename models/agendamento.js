@@ -5,28 +5,28 @@ class AgendamentoModel {
   
   // Obter todos os agendamentos com filtros opcionais
   static async getAll(filters = {}) {
-    let query = 'SELECT * FROM agendamento';
+    let query = 'SELECT * FROM `agendamento`';
     let params = [];
     let conditions = [];
     
     // Aplicar filtros
     if (filters.status) {
-      conditions.push('STATUS = ?');
+      conditions.push('`STATUS` = ?');
       params.push(filters.status);
     }
     
     if (filters.data_inicio) {
-      conditions.push('DATA >= ?');
+      conditions.push('`DATA` >= ?');
       params.push(filters.data_inicio);
     }
     
     if (filters.data_fim) {
-      conditions.push('DATA <= ?');
+      conditions.push('`DATA` <= ?');
       params.push(filters.data_fim);
     }
     
     if (filters.cli) {
-      conditions.push('CLI = ?');
+      conditions.push('`CLI` = ?');
       params.push(filters.cli);
     }
     
@@ -34,17 +34,15 @@ class AgendamentoModel {
       query += ' WHERE ' + conditions.join(' AND ');
     }
     
-    query += ' ORDER BY DATA DESC, NUM DESC';
+    query += ' ORDER BY `DATA` DESC, `NUM` DESC';
     
-    // Aplicar paginação
-    if (filters.limit) {
-      query += ' LIMIT ?';
-      params.push(filters.limit);
-    }
-    
-    if (filters.offset) {
-      query += ' OFFSET ?';
-      params.push(filters.offset);
+    // Aplicar paginação com valores literais (não parâmetros)
+    if (filters.limit && Number.isInteger(filters.limit) && filters.limit > 0) {
+      query += ` LIMIT ${filters.limit}`;
+      
+      if (filters.offset && Number.isInteger(filters.offset) && filters.offset >= 0) {
+        query += ` OFFSET ${filters.offset}`;
+      }
     }
     
     return await executeQuery(query, params);
@@ -52,7 +50,7 @@ class AgendamentoModel {
   
   // Obter agendamento por ID
   static async getById(id) {
-    const query = 'SELECT * FROM agendamento WHERE ID = ?';
+    const query = 'SELECT * FROM `agendamento` WHERE `ID` = ?';
     return await executeQuery(query, [id]);
   }
   
@@ -66,7 +64,7 @@ class AgendamentoModel {
     }, user_id);
     
     const query = `
-      INSERT INTO agendamento (ID, NUM, CHNFE, CLI, VOL, DATA, STATUS, HIST)
+      INSERT INTO \`agendamento\` (\`ID\`, \`NUM\`, \`CHNFE\`, \`CLI\`, \`VOL\`, \`DATA\`, \`STATUS\`, \`HIST\`)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
@@ -108,15 +106,15 @@ class AgendamentoModel {
     const fields = [];
     const params = [];
     
-    if (NUM !== undefined) { fields.push('NUM = ?'); params.push(NUM); }
-    if (CHNFE !== undefined) { fields.push('CHNFE = ?'); params.push(CHNFE); }
-    if (CLI !== undefined) { fields.push('CLI = ?'); params.push(CLI); }
-    if (VOL !== undefined) { fields.push('VOL = ?'); params.push(VOL); }
-    if (DATA !== undefined) { fields.push('DATA = ?'); params.push(DATA); }
-    if (STATUS !== undefined) { fields.push('STATUS = ?'); params.push(STATUS); }
+    if (NUM !== undefined) { fields.push('`NUM` = ?'); params.push(NUM); }
+    if (CHNFE !== undefined) { fields.push('`CHNFE` = ?'); params.push(CHNFE); }
+    if (CLI !== undefined) { fields.push('`CLI` = ?'); params.push(CLI); }
+    if (VOL !== undefined) { fields.push('`VOL` = ?'); params.push(VOL); }
+    if (DATA !== undefined) { fields.push('`DATA` = ?'); params.push(DATA); }
+    if (STATUS !== undefined) { fields.push('`STATUS` = ?'); params.push(STATUS); }
     
     // Sempre atualizar o histórico
-    fields.push('HIST = ?');
+    fields.push('`HIST` = ?');
     params.push(JSON.stringify(novoHistorico));
     
     if (fields.length === 1) { // Apenas HIST
@@ -125,20 +123,20 @@ class AgendamentoModel {
     
     params.push(id); // Para o WHERE
     
-    const query = `UPDATE agendamento SET ${fields.join(', ')} WHERE ID = ?`;
+    const query = `UPDATE \`agendamento\` SET ${fields.join(', ')} WHERE \`ID\` = ?`;
     
     return await executeQuery(query, params);
   }
   
   // Deletar agendamento
   static async delete(id) {
-    const query = 'DELETE FROM agendamento WHERE ID = ?';
+    const query = 'DELETE FROM `agendamento` WHERE `ID` = ?';
     return await executeQuery(query, [id]);
   }
   
   // Obter estrutura da tabela
   static async getStructure() {
-    const query = 'DESCRIBE agendamento';
+    const query = 'DESCRIBE `agendamento`';
     return await executeQuery(query);
   }
   
@@ -150,7 +148,7 @@ class AgendamentoModel {
   
   // Obter próximo número disponível
   static async getNextNum() {
-    const query = 'SELECT MAX(NUM) as max_num FROM agendamento';
+    const query = 'SELECT MAX(`NUM`) as max_num FROM `agendamento`';
     const result = await executeQuery(query);
     
     if (result.success && result.data.length > 0) {
@@ -163,13 +161,13 @@ class AgendamentoModel {
   
   // Buscar por CHNFE
   static async getByCHNFE(chnfe) {
-    const query = 'SELECT * FROM agendamento WHERE CHNFE = ?';
+    const query = 'SELECT * FROM `agendamento` WHERE `CHNFE` = ?';
     return await executeQuery(query, [chnfe]);
   }
   
   // Buscar por cliente
   static async getByCliente(cli) {
-    const query = 'SELECT * FROM agendamento WHERE CLI = ? ORDER BY DATA DESC';
+    const query = 'SELECT * FROM `agendamento` WHERE `CLI` = ? ORDER BY `DATA` DESC';
     return await executeQuery(query, [cli]);
   }
   
@@ -178,12 +176,12 @@ class AgendamentoModel {
     const query = `
       SELECT 
         COUNT(*) as total,
-        COUNT(CASE WHEN STATUS = 'ATIVO' THEN 1 END) as ativo,
-        COUNT(CASE WHEN STATUS = 'CONCLUIDO' THEN 1 END) as concluido,
-        COUNT(CASE WHEN STATUS = 'INATIVO' THEN 1 END) as inativo,
-        COUNT(CASE WHEN STATUS = 'PENDENTE' THEN 1 END) as pendente,
-        COUNT(CASE WHEN STATUS = 'CANCELADO' THEN 1 END) as cancelado
-      FROM agendamento
+        COUNT(CASE WHEN \`STATUS\` = 'ATIVO' THEN 1 END) as ativo,
+        COUNT(CASE WHEN \`STATUS\` = 'CONCLUIDO' THEN 1 END) as concluido,
+        COUNT(CASE WHEN \`STATUS\` = 'INATIVO' THEN 1 END) as inativo,
+        COUNT(CASE WHEN \`STATUS\` = 'PENDENTE' THEN 1 END) as pendente,
+        COUNT(CASE WHEN \`STATUS\` = 'CANCELADO' THEN 1 END) as cancelado
+      FROM \`agendamento\`
     `;
     return await executeQuery(query);
   }

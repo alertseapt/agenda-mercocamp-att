@@ -6,8 +6,8 @@ class ProdutoController {
   static async getAll(req, res) {
     try {
       const filters = {
-        limit: req.query.limit,
-        offset: req.query.offset,
+        limit: req.query.limit ? parseInt(req.query.limit) : 100,
+        offset: req.query.offset ? parseInt(req.query.offset) : 0,
         cnpj_int: req.query.cnpj_int,
         cnpj_forn: req.query.cnpj_forn,
         cod_forn: req.query.cod_forn

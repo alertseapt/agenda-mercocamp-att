@@ -6,8 +6,8 @@ class AgendamentoController {
   static async getAll(req, res) {
     try {
       const filters = {
-        limit: req.query.limit,
-        offset: req.query.offset,
+        limit: req.query.limit ? parseInt(req.query.limit) : 100,
+        offset: req.query.offset ? parseInt(req.query.offset) : 0,
         status: req.query.status,
         data_inicio: req.query.data_inicio,
         data_fim: req.query.data_fim,
