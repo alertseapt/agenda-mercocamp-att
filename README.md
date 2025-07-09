@@ -683,6 +683,33 @@ GET /mercocamp/tabela/{nome}/estrutura
 GET /mercocamp/tabela/{nome}/contar
 ```
 
+## 🏢 Endpoints de Validação
+
+### Validar CNPJ
+```
+GET /validar/cnpj/{cnpj}
+```
+**Descrição**: Valida um CNPJ em duas bases de dados:
+1.  Verifica se o CNPJ existe como cliente na tabela `wcl`.
+2.  Verifica se o CNPJ está associado a um usuário na tabela `usuarios`.
+
+**Exemplo**: `GET /validar/cnpj/12345678000195`
+
+**Resposta de Sucesso**:
+```json
+{
+  "success": true,
+  "message": "Validação de CNPJ concluída.",
+  "data": {
+    "cnpj_consultado": "12345678000195",
+    "cliente_encontrado": true,
+    "usuario_associado": true,
+    "dados_cliente": [ { ...dados da tabela wcl... } ],
+    "dados_usuario": [ { ...dados da tabela usuarios... } ]
+  }
+}
+```
+
 ## 🗄️ Endpoints de Banco de Dados
 
 ### Gerenciamento de Conexões

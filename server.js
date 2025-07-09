@@ -30,6 +30,7 @@ const xmlRoutes = require('./routes/xml');
 const usuariosRoutes = require('./routes/usuarios');
 const mercocampRoutes = require('./routes/mercocamp');
 const databaseRoutes = require('./routes/database');
+const validacaoRoutes = require('./routes/validacao');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -156,6 +157,7 @@ app.use('/parse', xmlRoutes);
 app.use('/usuarios', usuariosRoutes);
 app.use('/mercocamp', mercocampRoutes);
 app.use('/database', databaseRoutes);
+app.use('/validar', validacaoRoutes);
 
 // Endpoint de debug
 app.get('/debug', (req, res) => {
