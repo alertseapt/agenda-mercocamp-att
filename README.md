@@ -1,4 +1,4 @@
-# 🚀 API CRUD Mercocamp v3.1.0
+# 🚀 API CRUD Mercocamp v3.2.0
 
 API RESTful completa para sistema de agendamento Mercocamp, desenvolvida em Node.js com Express, MySQL e processamento de XML de NF-e.
 
@@ -6,6 +6,9 @@ API RESTful completa para sistema de agendamento Mercocamp, desenvolvida em Node
 
 - ✅ **CRUD completo** para agendamentos e produtos
 - ✅ **Processamento XML NF-e** com conversão para JSON
+- ✅ **Múltiplos bancos de dados** (dbrecebimento, bdusuarios, dbmercocamp)
+- ✅ **Gerenciamento de usuários** completo
+- ✅ **Operações dinâmicas** em tabelas do dbmercocamp
 - ✅ **Validações robustas** com sanitização de dados
 - ✅ **Histórico de alterações** automático (campo HIST)
 - ✅ **Middlewares de segurança** (Helmet, CORS, Rate Limiting)
@@ -14,14 +17,30 @@ API RESTful completa para sistema de agendamento Mercocamp, desenvolvida em Node
 - ✅ **Deploy automatizado** no Railway
 - ✅ **Documentação completa** integrada
 
-## 🗄️ Estrutura do Banco de Dados
+## 🗄️ Estrutura dos Bancos de Dados
 
-### Configuração do Banco
+### Configuração dos Bancos
 - **Host**: mercocamp.ip.odhserver.com
 - **Porta**: 33101
-- **Database**: dbrecebimento
 - **Engine**: MySQL
 - **Charset**: utf8mb4
+
+### Bancos Configurados
+
+#### 1. dbrecebimento (Banco Principal)
+- **Database**: dbrecebimento
+- **Propósito**: Recebimentos e agendamentos
+- **Tabelas**: agendamento, produtos
+
+#### 2. dbusuarios (Banco de Usuários)
+- **Database**: dbusuarios
+- **Propósito**: Gerenciamento de usuários do sistema
+- **Tabelas**: usuarios
+
+#### 3. dbmercocamp (Banco Geral)
+- **Database**: dbmercocamp
+- **Propósito**: Dados gerais do sistema Mercocamp
+- **Tabelas**: Dinâmicas (clientes, fornecedores, produtos, etc.)
 
 ### Tabelas
 
@@ -44,6 +63,20 @@ API RESTful completa para sistema de agendamento Mercocamp, desenvolvida em Node
 | cnpj_int | varchar(14) | CNPJ interno (14 dígitos) |
 | cod_forn | varchar(50) | Código do fornecedor |
 | cnpj_forn | varchar(14) | CNPJ do fornecedor (14 dígitos) |
+
+### Tabelas do Banco dbusuarios
+
+#### 1. usuarios
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | int | Chave primária auto increment |
+| nome | varchar(100) | Nome completo do usuário |
+| email | varchar(100) | Email único |
+| senha | varchar(255) | Senha criptografada |
+| tipo | varchar(50) | Tipo de usuário (admin, usuario, gerente) |
+| status | varchar(20) | Status (ativo, inativo, bloqueado) |
+| data_criacao | datetime | Data de criação |
+| data_atualizacao | datetime | Data da última atualização |
 
 ## 🚀 Instalação e Configuração
 
@@ -429,6 +462,266 @@ POST /parse/validate-nfe
    ```xml
    <infNFe>...</infNFe>
    ```
+
+## 👥 Endpoints de Usuários (dbusuarios)
+
+### Gerenciamento de Usuários
+
+#### Listar Usuários
+```
+GET /usuarios
+```
+**Resposta**:
+```json
+{
+  "success": true,
+  "message": "Usuários listados com sucesso",
+  "data": [
+    {
+      "id": 1,
+      "nome": "João Silva",
+      "email": "joao@empresa.com",
+      "tipo": "admin",
+      "status": "ativo",
+      "data_criacao": "2024-01-15T10:30:00.000Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+#### Buscar Usuário por ID
+```
+GET /usuarios/{id}
+```
+
+#### Criar Usuário
+```
+POST /usuarios
+```
+**Body**:
+```json
+{
+  "nome": "Maria Santos",
+  "email": "maria@empresa.com",
+  "senha": "senha123",
+  "tipo": "usuario",
+  "status": "ativo"
+}
+```
+
+#### Atualizar Usuário
+```
+PUT /usuarios/{id}
+```
+**Body**:
+```json
+{
+  "nome": "Maria Santos Silva",
+  "email": "maria.silva@empresa.com",
+  "tipo": "admin"
+}
+```
+
+#### Deletar Usuário
+```
+DELETE /usuarios/{id}
+```
+
+#### Buscar por Tipo
+```
+GET /usuarios/tipo/{tipo}
+```
+**Tipos**: admin, usuario, gerente, etc.
+
+#### Buscar por Status
+```
+GET /usuarios/status/{status}
+```
+**Status**: ativo, inativo, bloqueado
+
+### Estrutura da Tabela Usuários
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id | int | Chave primária auto increment |
+| nome | varchar(100) | Nome completo do usuário |
+| email | varchar(100) | Email único |
+| senha | varchar(255) | Senha criptografada |
+| tipo | varchar(50) | Tipo de usuário |
+| status | varchar(20) | Status do usuário |
+| data_criacao | datetime | Data de criação |
+| data_atualizacao | datetime | Data da última atualização |
+
+## 🏢 Endpoints Mercocamp (dbmercocamp)
+
+### Gerenciamento de Tabelas
+
+#### Listar Tabelas
+```
+GET /mercocamp/tabelas
+```
+**Resposta**:
+```json
+{
+  "success": true,
+  "message": "Tabelas listadas com sucesso",
+  "data": [
+    { "Tables_in_dbmercocamp": "clientes" },
+    { "Tables_in_dbmercocamp": "fornecedores" },
+    { "Tables_in_dbmercocamp": "produtos" }
+  ],
+  "count": 3
+}
+```
+
+#### Listar Dados de uma Tabela
+```
+GET /mercocamp/tabela/{nome}
+```
+**Query Parameters**:
+- `limit` - Número máximo de registros (default: 100)
+- `offset` - Paginação (default: 0)
+
+**Exemplo**:
+```bash
+GET /mercocamp/tabela/clientes?limit=50&offset=0
+```
+
+#### Buscar Registro por ID
+```
+GET /mercocamp/tabela/{nome}/{id}
+```
+
+#### Inserir Dados
+```
+POST /mercocamp/tabela/{nome}
+```
+**Body**:
+```json
+{
+  "nome": "Cliente Teste",
+  "email": "cliente@teste.com",
+  "telefone": "11999999999"
+}
+```
+
+#### Atualizar Dados
+```
+PUT /mercocamp/tabela/{nome}/{id}
+```
+**Body**:
+```json
+{
+  "nome": "Cliente Teste Atualizado",
+  "email": "cliente.atualizado@teste.com"
+}
+```
+
+#### Deletar Registro
+```
+DELETE /mercocamp/tabela/{nome}/{id}
+```
+
+#### Executar Query Personalizada
+```
+GET /mercocamp/query?sql=SELECT * FROM clientes WHERE status = 'ativo'
+```
+**Limitação**: Apenas queries SELECT são permitidas
+
+#### Estrutura de uma Tabela
+```
+GET /mercocamp/tabela/{nome}/estrutura
+```
+
+#### Contar Registros
+```
+GET /mercocamp/tabela/{nome}/contar
+```
+
+## 🗄️ Endpoints de Banco de Dados
+
+### Gerenciamento de Conexões
+
+#### Testar Todas as Conexões
+```
+GET /database/test-all
+```
+**Resposta**:
+```json
+{
+  "success": true,
+  "message": "Todas as conexões OK",
+        "data": {
+        "dbrecebimento": true,
+        "dbusuarios": true,
+        "dbmercocamp": true
+      },
+  "summary": {
+    "total": 3,
+    "connected": 3,
+    "failed": 0
+  }
+}
+```
+
+#### Testar Conexão Específica
+```
+GET /database/test/{banco}
+```
+**Bancos válidos**: dbrecebimento, dbusuarios, dbmercocamp
+
+#### Informações dos Bancos
+```
+GET /database/info
+```
+**Resposta**:
+```json
+{
+  "success": true,
+  "message": "Informações dos bancos de dados",
+  "data": [
+    {
+      "nome": "dbrecebimento",
+      "descricao": "Banco principal para recebimentos",
+      "connected": true,
+      "status": "online"
+    },
+    {
+      "nome": "dbusuarios",
+      "descricao": "Banco para gerenciamento de usuários",
+      "connected": true,
+      "status": "online"
+    },
+    {
+      "nome": "dbmercocamp",
+      "descricao": "Banco geral do sistema Mercocamp",
+      "connected": true,
+      "status": "online"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "online": 3,
+    "offline": 0
+  }
+}
+```
+
+#### Executar Query em Banco Específico
+```
+GET /database/query/{banco}?sql=SELECT * FROM tabela LIMIT 10
+```
+**Limitação**: Apenas queries SELECT são permitidas
+
+#### Listar Tabelas de um Banco
+```
+GET /database/tabelas/{banco}
+```
+
+#### Estrutura de uma Tabela
+```
+GET /database/estrutura/{banco}/{tabela}
+```
 
 ## 🔧 Validações e Regras
 

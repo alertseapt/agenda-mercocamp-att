@@ -27,9 +27,12 @@ const logger = winston.createLogger({
 const agendamentoRoutes = require('./routes/agendamento');
 const produtoRoutes = require('./routes/produto');
 const xmlRoutes = require('./routes/xml');
+const usuariosRoutes = require('./routes/usuarios');
+const mercocampRoutes = require('./routes/mercocamp');
+const databaseRoutes = require('./routes/database');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Configurar rate limiting
 const limiter = rateLimit({
@@ -77,11 +80,14 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'API CRUD Mercocamp v3.1.0',
+    message: 'API CRUD Mercocamp v3.2.0',
     endpoints: {
       agendamento: '/table/agendamento',
       produtos: '/table/produtos',
       xml: '/parse',
+      usuarios: '/usuarios',
+      mercocamp: '/mercocamp',
+      database: '/database',
       health: '/health',
       debug: '/debug'
     },
@@ -104,7 +110,40 @@ app.get('/', (req, res) => {
         'POST /parse/xml-to-json': 'Converter XML de NF-e para JSON',
         'POST /parse/extract-info': 'Extrair informações específicas da NF-e',
         'POST /parse/validate-nfe': 'Validar se XML é uma NF-e válida'
+      },
+      usuarios: {
+        'GET /usuarios': 'Listar usuários (dbusuarios)',
+        'GET /usuarios/:id': 'Buscar usuário por ID',
+        'POST /usuarios': 'Criar novo usuário',
+        'PUT /usuarios/:id': 'Atualizar usuário',
+        'DELETE /usuarios/:id': 'Deletar usuário',
+        'GET /usuarios/tipo/:tipo': 'Buscar usuários por tipo',
+        'GET /usuarios/status/:status': 'Buscar usuários por status'
+      },
+      mercocamp: {
+        'GET /mercocamp/tabelas': 'Listar tabelas do dbmercocamp',
+        'GET /mercocamp/tabela/:nome': 'Listar dados de uma tabela',
+        'GET /mercocamp/tabela/:nome/:id': 'Buscar registro por ID',
+        'POST /mercocamp/tabela/:nome': 'Inserir dados em uma tabela',
+        'PUT /mercocamp/tabela/:nome/:id': 'Atualizar dados em uma tabela',
+        'DELETE /mercocamp/tabela/:nome/:id': 'Deletar registro de uma tabela',
+        'GET /mercocamp/query': 'Executar query personalizada (SELECT)',
+        'GET /mercocamp/tabela/:nome/estrutura': 'Estrutura de uma tabela',
+        'GET /mercocamp/tabela/:nome/contar': 'Contar registros de uma tabela'
+      },
+      database: {
+        'GET /database/test-all': 'Testar todas as conexões',
+        'GET /database/test/:banco': 'Testar conexão específica',
+        'GET /database/info': 'Informações dos bancos',
+        'GET /database/query/:banco': 'Executar query em banco específico',
+        'GET /database/tabelas/:banco': 'Listar tabelas de um banco',
+        'GET /database/estrutura/:banco/:tabela': 'Estrutura de uma tabela'
       }
+    },
+    databases: {
+      dbrecebimento: 'Banco principal para recebimentos',
+      dbusuarios: 'Banco para gerenciamento de usuários',
+      dbmercocamp: 'Banco geral do sistema Mercocamp'
     }
   });
 });
@@ -113,6 +152,9 @@ app.get('/', (req, res) => {
 app.use('/table/agendamento', agendamentoRoutes);
 app.use('/table/produtos', produtoRoutes);
 app.use('/parse', xmlRoutes);
+app.use('/usuarios', usuariosRoutes);
+app.use('/mercocamp', mercocampRoutes);
+app.use('/database', databaseRoutes);
 
 // Endpoint de debug
 app.get('/debug', (req, res) => {
@@ -166,13 +208,18 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     // Testar conexão com banco de dados
-    console.log('🔄 Testando conexão com banco de dados...');
-    const dbConnected = await testConnection();
+    console.log('🔄 Testando conexões com bancos de dados...');
+    const { testAllConnections } = require('./config/database');
+    const dbResults = await testAllConnections();
     
-    if (!dbConnected) {
-      console.error('❌ Falha ao conectar com o banco de dados');
+    const allConnected = Object.values(dbResults).every(result => result === true);
+    
+    if (!allConnected) {
+      console.error('❌ Falha ao conectar com alguns bancos de dados:', dbResults);
       process.exit(1);
     }
+    
+    console.log('✅ Todas as conexões com bancos de dados estabelecidas!');
     
     // Iniciar servidor
     app.listen(PORT, '0.0.0.0', () => {
