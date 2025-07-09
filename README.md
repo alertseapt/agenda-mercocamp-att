@@ -465,6 +465,43 @@ POST /parse/validate-nfe
 
 ## 👥 Endpoints de Usuários (dbusuarios)
 
+### 🔐 Autenticação de Usuários
+
+#### Login de Usuário
+```
+POST /usuarios/login
+```
+**Body**:
+```json
+{
+  "usuario": "admin",
+  "senha": "123456"
+}
+```
+**Resposta de Sucesso**:
+```json
+{
+  "success": true,
+  "message": "Login realizado com sucesso",
+  "data": {
+    "usuario": "admin",
+    "senha": "123456",
+    "nivel_acesso": 1,
+    "cnpj": {
+      "numero": "12345678000199",
+      "razao_social": "EMPRESA TESTE LTDA"
+    }
+  }
+}
+```
+**Resposta de Erro**:
+```json
+{
+  "success": false,
+  "message": "Usuário ou senha incorretos"
+}
+```
+
 ### Gerenciamento de Usuários
 
 #### Listar Usuários
@@ -478,12 +515,10 @@ GET /usuarios
   "message": "Usuários listados com sucesso",
   "data": [
     {
-      "id": 1,
-      "nome": "João Silva",
-      "email": "joao@empresa.com",
-      "tipo": "admin",
-      "status": "ativo",
-      "data_criacao": "2024-01-15T10:30:00.000Z"
+      "usuario": "admin",
+      "senha": "123456",
+      "nivel_acesso": 1,
+      "cnpj": "{\"numero\":\"12345678000199\"}"
     }
   ],
   "count": 1
@@ -543,14 +578,10 @@ GET /usuarios/status/{status}
 ### Estrutura da Tabela Usuários
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| id | int | Chave primária auto increment |
-| nome | varchar(100) | Nome completo do usuário |
-| email | varchar(100) | Email único |
-| senha | varchar(255) | Senha criptografada |
-| tipo | varchar(50) | Tipo de usuário |
-| status | varchar(20) | Status do usuário |
-| data_criacao | datetime | Data de criação |
-| data_atualizacao | datetime | Data da última atualização |
+| usuario | varchar(50) | Nome de usuário para login |
+| senha | varchar(50) | Senha do usuário |
+| nivel_acesso | tinyint | Nível de acesso (1=admin, 2=usuario, etc.) |
+| cnpj | json | Dados do CNPJ em formato JSON |
 
 ## 🏢 Endpoints Mercocamp (dbmercocamp)
 
@@ -865,7 +896,30 @@ curl -X POST https://seu-app.railway.app/parse/validate-nfe \
   }'
 ```
 
-### Cenário 3: Gerenciar Produtos
+### Cenário 3: Testar Login de Usuário
+
+```bash
+# 1. Criar usuário de teste
+node scripts/criar-usuario-teste.js criar
+
+# 2. Testar login com usuário válido
+curl -X POST http://localhost:3001/usuarios/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "usuario": "admin",
+    "senha": "123456"
+  }'
+
+# 3. Testar login com usuário inválido
+curl -X POST http://localhost:3001/usuarios/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "usuario": "usuario_inexistente",
+    "senha": "senha_errada"
+  }'
+```
+
+### Cenário 4: Gerenciar Produtos
 
 ```bash
 # 1. Listar produtos de um fornecedor
@@ -886,6 +940,49 @@ curl "https://seu-app.railway.app/table/produtos/search?q=NOTEBOOK"
 ```
 
 ## 🔄 Integração com Frontend
+
+### Exemplo JavaScript - Login de Usuário
+
+```javascript
+// Função para fazer login
+async function fazerLogin(usuario, senha) {
+  try {
+    const response = await fetch('/usuarios/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        usuario: usuario,
+        senha: senha
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log('Login realizado com sucesso:', data.data);
+      
+      // Salvar dados do usuário no localStorage
+      localStorage.setItem('userData', JSON.stringify(data.data));
+      
+      // Redirecionar para dashboard
+      window.location.href = '/dashboard';
+      
+      return data.data;
+    } else {
+      console.error('Erro no login:', data.message);
+      return null;
+    }
+  } catch (error) {
+    console.error('Erro de conexão:', error);
+    return null;
+  }
+}
+
+// Exemplo de uso
+fazerLogin('admin', '123456');
+```
 
 ### Exemplo JavaScript - Processar NF-e
 
@@ -932,6 +1029,15 @@ if (result.success) {
 }
 ```
 
+## 📚 Documentação
+
+### Arquivos de Documentação
+- `README.md` - Documentação principal da API
+- `docs/LOGIN_API.md` - Documentação completa da API de Login
+- `docs/ESTRUTURA_BANCOS_DADOS.md` - Estrutura detalhada dos bancos de dados
+- `docs/RESUMO_ESTRUTURA_BANCOS.md` - Resumo da estrutura dos bancos
+- `docs/IMPLEMENTACAO_LOGIN.md` - Resumo da implementação da API de Login
+
 ## 🛠️ Estrutura do Projeto
 
 ```
@@ -950,17 +1056,28 @@ agenda-mercocamp-backend/
 ├── routes/
 │   ├── agendamento.js           # Rotas agendamento
 │   ├── produto.js               # Rotas produto
+│   ├── usuarios.js              # Rotas usuários e login
+│   ├── mercocamp.js             # Rotas dbmercocamp
+│   ├── database.js              # Rotas database
 │   └── xml.js                   # Rotas XML
+├── scripts/
+│   ├── criar-usuario-teste.js   # Script para criar usuários de teste
+│   ├── verificar-estrutura-bancos.js # Script para verificar estrutura
+│   └── obter-dados-reais.js     # Script para obter dados reais
 ├── utils/
 │   └── validators.js            # Utilitários de validação
 ├── logs/                        # Logs da aplicação
-├── scripts/                     # Scripts de setup
 ├── .gitignore                   # Arquivos ignorados pelo git
 ├── package.json                 # Dependências e scripts
 ├── server.js                    # Servidor principal
 ├── railway.json                 # Configuração Railway
 ├── Procfile                     # Processo Railway
 ├── env.production               # Variáveis de ambiente
+├── docs/                        # Documentação (ignorada pelo git)
+│   ├── LOGIN_API.md            # Documentação da API de Login
+│   ├── ESTRUTURA_BANCOS_DADOS.md # Estrutura dos bancos
+│   ├── RESUMO_ESTRUTURA_BANCOS.md # Resumo da estrutura
+│   └── IMPLEMENTACAO_LOGIN.md  # Resumo da implementação
 └── README.md                    # Esta documentação
 ```
 

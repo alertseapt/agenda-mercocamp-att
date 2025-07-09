@@ -198,6 +198,13 @@ dumps/
 # Coverage reports
 coverage/
 .nyc_output/
+
+# ====================================================================
+# DOCUMENTAÇÃO
+# ====================================================================
+
+# Pasta de documentação (exceto README.md)
+docs/
 *.lcov
 
 # Profiling
