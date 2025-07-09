@@ -110,12 +110,23 @@ router.get('/tabela/:nome/:id', async (req, res) => {
 });
 
 // GET - Buscar registro por CNPJ/CPF em uma tabela específica
-router.get('/tabela/:nome/cnpj/:cnpj', async (req, res) => {
+router.get('/clientes/cnpj', async (req, res) => {
   try {
-    const { nome, cnpj } = req.params;
+    const { cnpj } = req.query;
+    
+    if (!cnpj) {
+      return res.status(400).json({
+        success: false,
+        message: 'O parâmetro cnpj é obrigatório'
+      });
+    }
+
+    // Limpar o CNPJ para corresponder a formatos com e sem pontuação
+    const cnpjLimpo = cnpj.replace(/[^\d]/g, "");
+
     const result = await executeQuery(
-      `SELECT * FROM \`${nome}\` WHERE \`cnpj_cpf\` = ?`,
-      [cnpj],
+      `SELECT * FROM \`wcl\` WHERE REPLACE(REPLACE(REPLACE(\`cnpj_cpf\`, '.', ''), '-', ''), '/', '') = ?`,
+      [cnpjLimpo],
       'dbmercocamp'
     );
     

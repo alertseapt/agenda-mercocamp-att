@@ -629,6 +629,14 @@ GET /mercocamp/tabela/{nome}/cnpj/{cnpj_cpf}
 ```
 **Exemplo**: `GET /mercocamp/tabela/wcl/cnpj/12345678000195`
 
+#### Buscar por CNPJ/CPF na tabela `wcl`
+```
+GET /mercocamp/clientes/cnpj?cnpj={cnpj_cpf}
+```
+**Exemplo**:
+- `/mercocamp/clientes/cnpj?cnpj=12.345.678/0001-95`
+- `/mercocamp/clientes/cnpj?cnpj=12345678000195`
+
 #### Inserir Dados
 ```
 POST /mercocamp/tabela/{nome}
