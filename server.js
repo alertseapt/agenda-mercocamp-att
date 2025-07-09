@@ -112,6 +112,7 @@ app.get('/', (req, res) => {
         'POST /parse/validate-nfe': 'Validar se XML é uma NF-e válida'
       },
       usuarios: {
+        'POST /usuarios/login': 'Login de usuário (usuario, senha)',
         'GET /usuarios': 'Listar usuários (dbusuarios)',
         'GET /usuarios/:id': 'Buscar usuário por ID',
         'POST /usuarios': 'Criar novo usuário',

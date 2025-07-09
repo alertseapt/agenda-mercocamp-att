@@ -6,8 +6,64 @@ const { executeQuery, executeTransaction } = require('../config/database');
 // ROTAS PARA BANCO BDUSUARIOS
 // ====================================================================
 
+// POST - Login de usuário
+router.post('/login', async (req, res) => {
+  try {
+    const { usuario, senha } = req.body;
+    
+    if (!usuario || !senha) {
+      return res.status(400).json({
+        success: false,
+        message: 'Campos obrigatórios: usuario, senha'
+      });
+    }
+    
+    // Buscar usuário por usuário e senha
+    const result = await executeQuery(
+      'SELECT * FROM `usuarios` WHERE `usuario` = ? AND `senha` = ?',
+      [usuario, senha],
+      'dbusuarios'
+    );
+    
+    if (result.success) {
+      if (result.data.length > 0) {
+        const userData = result.data[0];
+        
+        res.json({
+          success: true,
+          message: 'Login realizado com sucesso',
+          data: {
+            usuario: userData.usuario,
+            nivel_acesso: userData.nivel_acesso,
+            cnpj: userData.cnpj,
+            // Incluindo todos os campos disponíveis
+            ...userData
+          }
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+          message: 'Usuário ou senha incorretos'
+        });
+      }
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao realizar login',
+        error: result.error
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+      error: error.message
+    });
+  }
+});
+
 // GET - Listar todos os usuários
-router.get('/usuarios', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const result = await executeQuery('SELECT * FROM `usuarios`', [], 'dbusuarios');
     
@@ -35,7 +91,7 @@ router.get('/usuarios', async (req, res) => {
 });
 
 // GET - Buscar usuário por ID
-router.get('/usuarios/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await executeQuery('SELECT * FROM `usuarios` WHERE `id` = ?', [id], 'dbusuarios');
@@ -70,7 +126,7 @@ router.get('/usuarios/:id', async (req, res) => {
 });
 
 // POST - Criar novo usuário
-router.post('/usuarios', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { nome, email, senha, tipo, status = 'ativo' } = req.body;
     
@@ -110,7 +166,7 @@ router.post('/usuarios', async (req, res) => {
 });
 
 // PUT - Atualizar usuário
-router.put('/usuarios/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, email, senha, tipo, status } = req.body;
@@ -178,7 +234,7 @@ router.put('/usuarios/:id', async (req, res) => {
 });
 
 // DELETE - Deletar usuário
-router.delete('/usuarios/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await executeQuery('DELETE FROM `usuarios` WHERE `id` = ?', [id], 'dbusuarios');
@@ -213,7 +269,7 @@ router.delete('/usuarios/:id', async (req, res) => {
 });
 
 // GET - Buscar usuários por tipo
-router.get('/usuarios/tipo/:tipo', async (req, res) => {
+router.get('/tipo/:tipo', async (req, res) => {
   try {
     const { tipo } = req.params;
     const result = await executeQuery('SELECT * FROM `usuarios` WHERE `tipo` = ?', [tipo], 'dbusuarios');
@@ -242,7 +298,7 @@ router.get('/usuarios/tipo/:tipo', async (req, res) => {
 });
 
 // GET - Buscar usuários por status
-router.get('/usuarios/status/:status', async (req, res) => {
+router.get('/status/:status', async (req, res) => {
   try {
     const { status } = req.params;
     const result = await executeQuery('SELECT * FROM `usuarios` WHERE `status` = ?', [status], 'dbusuarios');
