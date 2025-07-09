@@ -3,7 +3,8 @@ const moment = require('moment');
 // Função para limpar CNPJ (remover caracteres especiais)
 function cleanCNPJ(cnpj) {
   if (!cnpj) return '';
-  return cnpj.replace(/[^0-9]/g, '');
+  // Garante que o CNPJ seja tratado como string antes de usar replace
+  return String(cnpj).replace(/[^\d]/g, '');
 }
 
 // Função para validar CNPJ

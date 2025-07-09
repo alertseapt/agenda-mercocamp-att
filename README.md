@@ -821,6 +821,11 @@ GET /database/estrutura/{banco}/{tabela}
 - **cod_forn**: Máximo 50 caracteres, alfanumérico + _ e -
 - **cnpj_forn**: 14 dígitos, CNPJ válido
 
+### Validações de CNPJ
+- **Formato Flexível**: Aceita CNPJ com ou sem pontuação (ex: `12.345.678/0001-95` ou `12345678000195`).
+- **Validação Completa**: Usa o algoritmo padrão para validar o CNPJ.
+- **Limpeza Automática**: Remove automaticamente pontos, barras e traços.
+
 ### Validações de XML NF-e
 - **Formato XML**: Válido e bem formado
 - **Estrutura NF-e**: Elementos obrigatórios presentes
