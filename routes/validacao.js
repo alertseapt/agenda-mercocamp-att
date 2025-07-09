@@ -3,23 +3,25 @@ const router = express.Router();
 const { executeQuery } = require('../config/database');
 const { cleanCNPJ } = require('../utils/validators');
 
-// Rota para validar CNPJ em múltiplos bancos
-router.get('/cnpj/:cnpj', async (req, res) => {
+// Rota para validar CNPJ em múltiplos bancos e associado a um usuário
+router.post('/cnpj', async (req, res) => {
   try {
-    const { cnpj } = req.params;
+    const { cnpj, usuario } = req.body;
     
-    if (!cnpj) {
+    if (!cnpj || !usuario) {
       return res.status(400).json({
         success: false,
-        message: 'O parâmetro cnpj é obrigatório'
+        message: 'Os parâmetros `cnpj` e `usuario` são obrigatórios'
       });
     }
 
     const cnpjLimpo = cleanCNPJ(cnpj);
     let response = {
       cnpj_consultado: cnpj,
+      usuario_consultado: usuario,
       cliente_encontrado: false,
-      usuario_associado: false,
+      usuario_encontrado: false,
+      cnpj_associado_ao_usuario: false,
       dados_cliente: null,
       dados_usuario: null
     };
@@ -37,28 +39,38 @@ router.get('/cnpj/:cnpj', async (req, res) => {
     }
 
     // 2. Verificar na tabela de usuários (usuarios)
-    // Usamos JSON_EXTRACT para buscar dentro do campo JSON
     const usuarioResult = await executeQuery(
-      "SELECT * FROM `usuarios` WHERE JSON_EXTRACT(cnpj, '$.numero') = ?",
-      [cnpjLimpo],
+      "SELECT * FROM `usuarios` WHERE `usuario` = ?",
+      [usuario],
       'dbusuarios'
     );
     
     if (usuarioResult.success && usuarioResult.data.length > 0) {
-      response.usuario_associado = true;
-      response.dados_usuario = usuarioResult.data;
+      response.usuario_encontrado = true;
+      response.dados_usuario = usuarioResult.data[0]; // Pegar o primeiro usuário encontrado
+      
+      // Verificar se o CNPJ está associado ao usuário
+      try {
+        const cnpjsDoUsuario = JSON.parse(response.dados_usuario.cnpj);
+        if (cnpjsDoUsuario && cnpjsDoUsuario.numero === cnpjLimpo) {
+            response.cnpj_associado_ao_usuario = true;
+        }
+      } catch (e) {
+        // O campo cnpj pode não ser um JSON válido ou não existir
+        // Apenas ignoramos o erro e mantemos cnpj_associado_ao_usuario como false
+      }
     }
 
-    if (response.cliente_encontrado || response.usuario_associado) {
+    if (response.cliente_encontrado || response.usuario_encontrado) {
       res.json({
         success: true,
-        message: 'Validação de CNPJ concluída.',
+        message: 'Validação de CNPJ e usuário concluída.',
         data: response
       });
     } else {
       res.status(404).json({
         success: false,
-        message: 'CNPJ não encontrado em nenhuma das bases de dados.',
+        message: 'CNPJ ou usuário não encontrados.',
         data: response
       });
     }
