@@ -53,11 +53,11 @@ router.post('/cnpj', async (req, res) => {
       try {
         const cnpjsDoUsuario = JSON.parse(response.dados_usuario.cnpj);
         if (cnpjsDoUsuario) {
-          // Itera sobre as chaves do objeto JSON
           for (const key in cnpjsDoUsuario) {
-            if (key === cnpjLimpo) {
+            // Comparar numericamente para evitar problemas de formatação
+            if (Number(key) === Number(cnpjLimpo)) {
               response.cnpj_associado_ao_usuario = true;
-              break; // Encontrou a correspondência, pode sair do loop
+              break;
             }
           }
         }
