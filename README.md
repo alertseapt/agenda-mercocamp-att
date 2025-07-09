@@ -623,6 +623,12 @@ GET /mercocamp/tabela/clientes?limit=50&offset=0
 GET /mercocamp/tabela/{nome}/{id}
 ```
 
+#### Buscar por CNPJ/CPF
+```
+GET /mercocamp/tabela/{nome}/cnpj/{cnpj_cpf}
+```
+**Exemplo**: `GET /mercocamp/tabela/wcl/cnpj/12345678000195`
+
 #### Inserir Dados
 ```
 POST /mercocamp/tabela/{nome}

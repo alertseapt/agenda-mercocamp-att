@@ -109,6 +109,45 @@ router.get('/tabela/:nome/:id', async (req, res) => {
   }
 });
 
+// GET - Buscar registro por CNPJ/CPF em uma tabela específica
+router.get('/tabela/:nome/cnpj/:cnpj', async (req, res) => {
+  try {
+    const { nome, cnpj } = req.params;
+    const result = await executeQuery(
+      `SELECT * FROM \`${nome}\` WHERE \`cnpj_cpf\` = ?`,
+      [cnpj],
+      'dbmercocamp'
+    );
+    
+    if (result.success) {
+      if (result.data.length > 0) {
+        res.json({
+          success: true,
+          message: 'Registro encontrado',
+          data: result.data
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'Registro não encontrado'
+        });
+      }
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao buscar registro por CNPJ/CPF',
+        error: result.error
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+      error: error.message
+    });
+  }
+});
+
 // POST - Inserir dados em uma tabela específica
 router.post('/tabela/:nome', async (req, res) => {
   try {
