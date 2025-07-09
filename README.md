@@ -577,11 +577,11 @@ GET /usuarios/status/{status}
 
 ### Estrutura da Tabela Usuários
 | Campo | Tipo | Descrição |
-|-------|------|-----------|
-| usuario | varchar(50) | Nome de usuário para login |
-| senha | varchar(50) | Senha do usuário |
-| nivel_acesso | tinyint | Nível de acesso (1=admin, 2=usuario, etc.) |
-| cnpj | json | Dados do CNPJ em formato JSON |
+|---|---|---|
+| `usuario` | varchar(50) | Nome de usuário para login (único) |
+| `senha` | varchar(50) | Senha do usuário (recomenda-se criptografar) |
+| `nivel_acesso` | tinyint | Nível de permissão (ex: 1=admin) |
+| `cnpj` | json | JSON contendo os CNPJs associados. A chave deve ser o CNPJ. Ex: `{"12345678000195": "valor"}` |
 
 ## 🏢 Endpoints Mercocamp (dbmercocamp)
 
