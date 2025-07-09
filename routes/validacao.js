@@ -51,18 +51,18 @@ router.post('/cnpj', async (req, res) => {
       
       // Verificar se o CNPJ está associado ao usuário
       try {
-        const cnpjsDoUsuario = JSON.parse(response.dados_usuario.cnpj);
+        const cnpjsDoUsuario = response.dados_usuario.cnpj; // O driver já faz o parse do JSON
+        
         if (cnpjsDoUsuario) {
           for (const key in cnpjsDoUsuario) {
-            // Comparar numericamente para evitar problemas de formatação
-            if (Number(key) === Number(cnpjLimpo)) {
+            if (String(key).trim() === cnpjLimpo) {
               response.cnpj_associado_ao_usuario = true;
               break;
             }
           }
         }
       } catch (e) {
-        console.error('Erro ao fazer parse do JSON de CNPJ:', e.message);
+        console.error('Erro ao processar o objeto CNPJ:', e.message);
       }
     }
 
