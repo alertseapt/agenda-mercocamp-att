@@ -1,0 +1,44 @@
+{
+  "name": "agenda-mercocamp-backend",
+  "version": "3.1.0",
+  "description": "API CRUD para sistema de agendamento Mercocamp",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup": "node scripts/setup.js",
+    "build": "echo 'No build step required'",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "logs": "tail -f logs/combined.log",
+    "logs:error": "tail -f logs/error.log",
+    "railway:dev": "NODE_ENV=development npm run dev",
+    "railway:prod": "NODE_ENV=production npm start"
+  },
+  "keywords": [
+    "api",
+    "crud",
+    "mysql",
+    "nodejs",
+    "express",
+    "mercocamp"
+  ],
+  "author": "Mercocamp",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.2",
+    "moment": "^2.29.4",
+    "mysql2": "^3.6.0",
+    "winston": "^3.10.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+ 
